@@ -24,13 +24,43 @@ def fetch_solar_flares(start_date, end_date):
         print(f"Error fetching flares: HTTP {response.status_code}")
         return []
 
+def fetch_cmes(start_date, end_date):
+    endpoint = f"{BASE_URL}/CME"
+    params = {
+        "startDate": start_date, 
+        "endDate": end_date, 
+        "api_key": NASA_API_KEY
+    }
+
+    response = requests.get(endpoint, params=params)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error fetching CMEs: HTTP {response.status_code}")
+        return []
+
 if __name__ == "__main__":
-    # Test call: Fetch flares for the last 30 days
-    flares = fetch_solar_flares("2026-07-01", "2026-07-29")
+    start_date = "2026-07-01"
+    end_date = "2026-07-29"
+
+    # Fetch both event types
+    flares = fetch_solar_flares(start_date, end_date)
+    cmes = fetch_cmes(start_date, end_date)
+
     print(f"Found {len(flares)} flare event(s).")
-    
-    if flares:
-        # Inspect the first returned event
-        print("\nSample Flare Data:")
-        print("Class:", flares[0].get("classType"))
-        print("Peak Time:", flares[0].get("peakTime"))
+    print(f"Found {len(cmes)} CME event(s).")
+
+    if cmes:
+        sample_cme = cmes[0]
+
+        # Safely extract the nested cmeAnalyses list
+        analyses = sample_cme.get("cmeAnalyses", [])
+
+        # If analyses exist, grab speed from the first item; otherwise default to "N/A"
+        speed = analyses[0].get("speed") if analyses else "N/A"
+
+        print("\nSample CME Data:")
+        print("Activity ID:", sample_cme.get("activityID"))
+        print("Start Time:", sample_cme.get("startTime"))
+        print("Speed (km/s):", speed)
