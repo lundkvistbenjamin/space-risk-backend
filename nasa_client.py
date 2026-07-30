@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from datetime import datetime, timedelta, timezone
 
 # Load key-value pairs from .env file into environment
 load_dotenv()
@@ -40,9 +41,17 @@ def fetch_cmes(start_date, end_date):
         print(f"Error fetching CMEs: HTTP {response.status_code}")
         return []
 
+def get_date_range(days_back = 30):
+    end_date = datetime.now(timezone.utc)
+    start_date = end_date - timedelta(days=days_back)
+
+    # Format dates as YYYY-MM-DD
+    return start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
+
 if __name__ == "__main__":
-    start_date = "2026-07-01"
-    end_date = "2026-07-29"
+    # Dynamically generate the 30-day window ending today
+    start_date, end_date = get_date_range(days_back=30)
+    print(f"Fetching data from {start_date} to {end_date}...\n")
 
     # Fetch both event types
     flares = fetch_solar_flares(start_date, end_date)
