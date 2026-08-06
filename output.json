@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "generated_at": "2026-08-06T12:37:42.362048+00:00",
+    "window_start": "2026-07-07",
+    "window_end": "2026-08-06",
+    "events_analyzed": {
+      "flare_count": 19,
+      "cme_count": 127
+    }
+  },
+  "observed_extremes": {
+    "peak_solar_flare_class": "M4.0",
+    "peak_xray_flux_wm2": 4e-05,
+    "primary_cme_features": {
+      "speed": 1549.0,
+      "half_angle": 45.0,
+      "is_earth_directed": true
+    }
+  },
+  "risk_assessment": {
+    "scores": {
+      "radio_blackout": 53.4,
+      "gps_disruption": 67.83,
+      "power_grid": 58.37,
+      "overall_max": 67.83
+    },
+    "threat_level": "HIGH"
+  }
+}
