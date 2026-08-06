@@ -1,5 +1,7 @@
+import os
 import json
 from datetime import datetime, timezone
+from supabase import create_client, Client
 
 from nasa_client import fetch_solar_flares, fetch_cmes, get_date_range
 from transformer import parse_flare_class, extract_cme_features
@@ -12,7 +14,7 @@ def run_pipeline(days_back=30):
     raw_flares = fetch_solar_flares(start_date, end_date)
     raw_cmes = fetch_cmes(start_date, end_date)
 
-    # 1. Process Solar Flares: find the flare with the highest X-ray flux
+    # 1. Process Solar Flares
     max_flux = 0.0
     top_flare_raw = None
 
@@ -28,12 +30,8 @@ def run_pipeline(days_back=30):
     
     for cme in raw_cmes:
         features = extract_cme_features(cme)
-        
-        # Found first Earth-directed CME: replace non-Earth-directed candidate immediately
         if features["is_earth_directed"] and not top_cme_features["is_earth_directed"]:
             top_cme_features = features
-            
-        # Both are Earth-directed (or both are NOT): keep the faster one
         elif features["is_earth_directed"] == top_cme_features["is_earth_directed"]:
             if features["speed"] > top_cme_features["speed"]:
                 top_cme_features = features
@@ -62,7 +60,41 @@ def run_pipeline(days_back=30):
 
     return payload
 
+def save_to_supabase(payload: dict):
+    url: str = os.getenv("SUPABASE_URL", "")
+    key: str = os.getenv("SUPABASE_KEY", "")
+
+    if not url or not key:
+        print("[!] Supabase environment variables missing. Skipping database push.")
+        return
+
+    supabase: Client = create_client(url, key)
+
+    # Flatten nested payload into database row schema
+    row = {
+        "generated_at": payload["metadata"]["generated_at"],
+        "window_start": payload["metadata"]["window_start"],
+        "window_end": payload["metadata"]["window_end"],
+        "flare_count": payload["metadata"]["events_analyzed"]["flare_count"],
+        "cme_count": payload["metadata"]["events_analyzed"]["cme_count"],
+        "peak_solar_flare_class": payload["observed_extremes"]["peak_solar_flare_class"],
+        "peak_xray_flux_wm2": payload["observed_extremes"]["peak_xray_flux_wm2"],
+        "primary_cme_features": payload["observed_extremes"]["primary_cme_features"],
+        "scores": payload["risk_assessment"]["scores"],
+        "threat_level": payload["risk_assessment"]["threat_level"]
+    }
+
+    response = supabase.table("space_weather_assessments").insert(row).execute()
+    print("[+] Successfully pushed record to Supabase!")
+    return response
+
 if __name__ == "__main__":
     results = run_pipeline(days_back=30)
-    print("\n--- Helios Pipeline Risk Assessment Payload ---")
-    print(json.dumps(results, indent=2))
+
+    # Save local copy
+    with open("output.json", "w") as f:
+        json.dump(results, f, indent=2)
+    print("[+] Wrote output.json locally.")
+
+    # Push to Supabase if credentials exist
+    save_to_supabase(results)
