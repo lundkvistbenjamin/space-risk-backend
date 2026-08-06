@@ -1,5 +1,4 @@
 import os
-import json
 from datetime import datetime, timezone
 from supabase import create_client, Client
 
@@ -90,11 +89,5 @@ def save_to_supabase(payload: dict):
 
 if __name__ == "__main__":
     results = run_pipeline(days_back=30)
-
-    # Save local copy
-    with open("output.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print("[+] Wrote output.json locally.")
-
     # Push to Supabase if credentials exist
     save_to_supabase(results)
