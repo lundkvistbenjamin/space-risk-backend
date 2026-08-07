@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.supabase import get_supabase_client
 
+
 app = FastAPI(
     title="Space Weather Risk API",
     description="Provides real-time infrastructure risk assessment powered by NASA DONKI data.",

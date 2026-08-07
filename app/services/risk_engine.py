@@ -1,5 +1,6 @@
 import math
 
+
 # Calculate radio blackout risk from peak X-ray flux
 def calculate_radio_risk(peak_flux: float) -> float:
 

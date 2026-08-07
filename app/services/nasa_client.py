@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 from app.config import DONKI_BASE_URL, NASA_API_KEY
 
+
 # Fetch Solar Flare (FLR) events from NASA DONKI
 def fetch_solar_flares(start_date: str, end_date: str) -> list:
 
