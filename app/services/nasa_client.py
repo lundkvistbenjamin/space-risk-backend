@@ -17,16 +17,26 @@ def fetch_solar_flares(start_date: str, end_date: str) -> list:
         "api_key": NASA_API_KEY,
     }
 
-    response = requests.get(endpoint, params=params)
+    try:
 
-    if response.status_code == 200:
+        response = requests.get(
+            endpoint,
+            params=params,
+            timeout=10,
+        )
+
+        response.raise_for_status()
+
         return response.json()
 
-    logger.error(
-        "Error fetching Solar Flares (HTTP %s)",
-        response.status_code,
-    )
-    return []
+    except requests.RequestException as error:
+
+        logger.error(
+            "Error fetching Solar Flares: %s",
+            error,
+        )
+
+        return []
 
 
 # Fetch Coronal Mass Ejection (CME) events from NASA DONKI
@@ -40,16 +50,26 @@ def fetch_cmes(start_date: str, end_date: str) -> list:
         "api_key": NASA_API_KEY,
     }
 
-    response = requests.get(endpoint, params=params)
+    try:
 
-    if response.status_code == 200:
+        response = requests.get(
+            endpoint,
+            params=params,
+            timeout=10,
+        )
+
+        response.raise_for_status()
+
         return response.json()
 
-    logger.error(
-        "Error fetching CMEs (HTTP %s)",
-        response.status_code,
-    )
-    return []
+    except requests.RequestException as error:
+
+        logger.error(
+            "Error fetching CMEs: %s",
+            error,
+        )
+
+        return []
 
 
 # Generate a rolling UTC date range ending today
@@ -67,11 +87,6 @@ def get_date_range(days_back: int = 30) -> tuple[str, str]:
 
 # Test the NASA client independently
 if __name__ == "__main__":
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
 
     start_date, end_date = get_date_range(days_back=30)
 
