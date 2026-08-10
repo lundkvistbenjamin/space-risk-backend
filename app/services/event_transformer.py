@@ -1,5 +1,6 @@
 import re
 
+
 # Convert a flare class (e.g. X1.2) into peak X-ray flux (W/m²)
 def parse_flare_class(class_type: str | None) -> float:
 
