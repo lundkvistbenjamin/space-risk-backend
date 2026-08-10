@@ -1,4 +1,4 @@
-import os
+import logging
 from datetime import datetime, timezone
 from supabase import Client, create_client
 from app.config import SUPABASE_KEY, SUPABASE_URL
@@ -13,6 +13,9 @@ from app.services.event_transformer import (
     extract_cme_features,
     parse_flare_class,
 )
+
+
+logger = logging.getLogger(__name__)
 
 # Find the strongest solar flare within the selected date range
 def get_peak_flare(raw_flares: list) -> tuple[float, str | None]:
@@ -72,9 +75,10 @@ def run_pipeline(days_back: int = 30) -> dict:
 
     start_date, end_date = get_date_range(days_back)
 
-    print(
-        f"Fetching space weather data "
-        f"({start_date} to {end_date})..."
+    logger.info(
+        "Fetching space weather data (%s to %s)...",
+        start_date,
+        end_date,
     )
 
     # Download raw NASA DONKI data
@@ -136,7 +140,7 @@ def save_to_supabase(payload: dict):
 
     if not SUPABASE_URL or not SUPABASE_KEY:
 
-        print(
+        logger.warning(
             "Supabase credentials missing. "
             "Skipping database upload."
         )
@@ -189,7 +193,9 @@ def save_to_supabase(payload: dict):
         .execute()
     )
 
-    print("Successfully pushed record to Supabase!")
+    logger.info(
+        "Successfully pushed record to Supabase!"
+    )
 
     return response
 

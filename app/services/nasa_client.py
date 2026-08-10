@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import requests
 from app.config import DONKI_BASE_URL, NASA_API_KEY
+
+
+logger = logging.getLogger(__name__)
 
 # Fetch Solar Flare (FLR) events from NASA DONKI
 def fetch_solar_flares(start_date: str, end_date: str) -> list:
@@ -18,9 +22,9 @@ def fetch_solar_flares(start_date: str, end_date: str) -> list:
     if response.status_code == 200:
         return response.json()
 
-    print(
-    f"Error fetching Solar Flares "
-    f"(HTTP {response.status_code})"
+    logger.error(
+        "Error fetching Solar Flares (HTTP %s)",
+        response.status_code,
     )
     return []
 
@@ -41,9 +45,9 @@ def fetch_cmes(start_date: str, end_date: str) -> list:
     if response.status_code == 200:
         return response.json()
 
-    print(
-    f"Error fetching CMEs "
-    f"(HTTP {response.status_code})"
+    logger.error(
+        "Error fetching CMEs (HTTP %s)",
+        response.status_code,
     )
     return []
 
@@ -64,15 +68,31 @@ def get_date_range(days_back: int = 30) -> tuple[str, str]:
 # Test the NASA client independently
 if __name__ == "__main__":
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
     start_date, end_date = get_date_range(days_back=30)
 
-    print(f"Fetching data from {start_date} to {end_date}...\n")
+    logger.info(
+        "Fetching data from %s to %s",
+        start_date,
+        end_date,
+    )
 
     flares = fetch_solar_flares(start_date, end_date)
     cmes = fetch_cmes(start_date, end_date)
 
-    print(f"Found {len(flares)} flare event(s).")
-    print(f"Found {len(cmes)} CME event(s).")
+    logger.info(
+        "Found %s flare event(s).",
+        len(flares),
+    )
+
+    logger.info(
+        "Found %s CME event(s).",
+        len(cmes),
+    )
 
     if cmes:
 
@@ -84,7 +104,16 @@ if __name__ == "__main__":
         # Grab the first speed if analyses exist
         speed = analyses[0].get("speed") if analyses else "N/A"
 
-        print("\nSample CME Data:")
-        print("Activity ID:", sample_cme.get("activityID"))
-        print("Start Time:", sample_cme.get("startTime"))
-        print("Speed (km/s):", speed)
+        logger.info("Sample CME Data:")
+        logger.info(
+            "Activity ID: %s",
+            sample_cme.get("activityID"),
+        )
+        logger.info(
+            "Start Time: %s",
+            sample_cme.get("startTime"),
+        )
+        logger.info(
+            "Speed (km/s): %s",
+            speed,
+        )
