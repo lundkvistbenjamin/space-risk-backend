@@ -1,6 +1,10 @@
 import math
 
 
+# DISCLAIMER: These functions use simplified heuristic scoring models (0-100 scale)
+# for demonstration and benchmarking. They approximate complex space physics and
+# DO NOT replace official space weather forecasts from NOAA SWPC or NASA CCMC.
+
 # Calculate radio blackout risk from peak X-ray flux
 def calculate_radio_risk(peak_flux: float) -> float:
 
