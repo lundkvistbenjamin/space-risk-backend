@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from pydantic import BaseModel
 from supabase import Client, create_client
 from app.config import SUPABASE_KEY, SUPABASE_URL
 from app.services.risk_engine import generate_space_weather_assessment
@@ -16,6 +17,49 @@ from app.services.event_transformer import (
 
 
 logger = logging.getLogger(__name__)
+
+
+class EventsAnalyzed(BaseModel):
+    flare_count: int
+    cme_count: int
+
+
+class Metadata(BaseModel):
+    generated_at: str
+    window_start: str
+    window_end: str
+    events_analyzed: EventsAnalyzed
+
+
+class PrimaryCMEFeatures(BaseModel):
+    speed: float
+    half_angle: float
+    is_earth_directed: bool
+
+
+class ObservedExtremes(BaseModel):
+    peak_solar_flare_class: str
+    peak_xray_flux_wm2: float
+    primary_cme_features: PrimaryCMEFeatures
+
+
+class RiskScores(BaseModel):
+    radio_blackout: float
+    gps_disruption: float
+    power_grid: float
+    overall_max: float
+
+
+class RiskAssessment(BaseModel):
+    scores: RiskScores
+    threat_level: str
+
+
+class AssessmentPayload(BaseModel):
+    metadata: Metadata
+    observed_extremes: ObservedExtremes
+    risk_assessment: RiskAssessment
+
 
 # Find the strongest solar flare within the selected date range
 def get_peak_flare(raw_flares: list) -> tuple[float, str | None]:
@@ -37,8 +81,11 @@ def get_peak_flare(raw_flares: list) -> tuple[float, str | None]:
 
 
 # Find the most significant CME
+
 # Earth-directed CMEs are always prioritized over non-Earth-directed ones.
+
 # If two CMEs have the same priority, the faster one is selected.
+
 def get_primary_cme(raw_cmes: list) -> dict:
 
     top_cme = {
@@ -132,7 +179,9 @@ def run_pipeline(days_back: int = 30) -> dict:
         "risk_assessment": assessment,
     }
 
-    return payload
+    validated_payload = AssessmentPayload.model_validate(payload)
+
+    return validated_payload.model_dump()
 
 
 # Save the generated assessment to Supabase
