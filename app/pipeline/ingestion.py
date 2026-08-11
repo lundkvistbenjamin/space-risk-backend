@@ -17,6 +17,7 @@ from app.services.event_transformer import (
 
 logger = logging.getLogger(__name__)
 
+
 # Find the strongest solar flare within the selected date range
 def get_peak_flare(raw_flares: list) -> tuple[float, str | None]:
 
@@ -198,11 +199,3 @@ def save_to_supabase(payload: dict):
     )
 
     return response
-
-
-# Allow the pipeline to be executed directly
-if __name__ == "__main__":
-
-    results = run_pipeline(days_back=30)
-
-    save_to_supabase(results)

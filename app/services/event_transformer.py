@@ -64,35 +64,3 @@ def extract_cme_features(cme_event: dict) -> dict:
         "half_angle": half_angle,
         "is_earth_directed": is_earth_directed,
     }
-
-
-# Test the transformer independently
-if __name__ == "__main__":
-
-    from app.services.nasa_client import (
-        fetch_cmes,
-        fetch_solar_flares,
-        get_date_range,
-    )
-
-    # Fetch raw NASA data
-    start_date, end_date = get_date_range(days_back=30)
-
-    raw_flares = fetch_solar_flares(start_date, end_date)
-    raw_cmes = fetch_cmes(start_date, end_date)
-
-    # Test flare parsing
-    if raw_flares:
-
-        sample_flare = raw_flares[0]
-
-        print("--- Flare Transformation Test ---")
-        print(parse_flare_class(sample_flare.get("classType")))
-
-    # Test CME feature extraction
-    if raw_cmes:
-
-        sample_cme = raw_cmes[0]
-
-        print("--- CME Transformation Test ---")
-        print(extract_cme_features(sample_cme))

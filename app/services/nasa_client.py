@@ -6,6 +6,7 @@ from app.config import DONKI_BASE_URL, NASA_API_KEY
 
 logger = logging.getLogger(__name__)
 
+
 # Fetch Solar Flare (FLR) events from NASA DONKI
 def fetch_solar_flares(start_date: str, end_date: str) -> list:
 
@@ -83,52 +84,3 @@ def get_date_range(days_back: int = 30) -> tuple[str, str]:
         start_date.strftime("%Y-%m-%d"),
         end_date.strftime("%Y-%m-%d"),
     )
-
-
-# Test the NASA client independently
-if __name__ == "__main__":
-
-    start_date, end_date = get_date_range(days_back=30)
-
-    logger.info(
-        "Fetching data from %s to %s",
-        start_date,
-        end_date,
-    )
-
-    flares = fetch_solar_flares(start_date, end_date)
-    cmes = fetch_cmes(start_date, end_date)
-
-    logger.info(
-        "Found %s flare event(s).",
-        len(flares),
-    )
-
-    logger.info(
-        "Found %s CME event(s).",
-        len(cmes),
-    )
-
-    if cmes:
-
-        sample_cme = cmes[0]
-
-        # Safely extract the nested cmeAnalyses list
-        analyses = sample_cme.get("cmeAnalyses", [])
-
-        # Grab the first speed if analyses exist
-        speed = analyses[0].get("speed") if analyses else "N/A"
-
-        logger.info("Sample CME Data:")
-        logger.info(
-            "Activity ID: %s",
-            sample_cme.get("activityID"),
-        )
-        logger.info(
-            "Start Time: %s",
-            sample_cme.get("startTime"),
-        )
-        logger.info(
-            "Speed (km/s): %s",
-            speed,
-        )
