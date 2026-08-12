@@ -14,6 +14,7 @@ from app.services.nasa_client import (
 def test_fetch_solar_flares_success(mock_get):
 
     mock_response = Mock()
+    mock_response.status_code = 200
     mock_response.json.return_value = [
         {"classType": "X1.0"},
         {"classType": "M5.0"},
@@ -56,6 +57,7 @@ def test_fetch_solar_flares_request_failure(mock_get):
 def test_fetch_cmes_success(mock_get):
 
     mock_response = Mock()
+    mock_response.status_code = 200
     mock_response.json.return_value = [
         {
             "activityID": "2026-08-01-CME-001",
@@ -114,3 +116,71 @@ def test_get_date_range(mock_datetime):
 
     assert start_date == "2026-07-12"
     assert end_date == "2026-08-11"
+
+
+# Test Solar Flare API retries after transient failures
+@patch("app.services.nasa_client.time.sleep")
+@patch("app.services.nasa_client.requests.get")
+def test_fetch_solar_flares_retries(mock_get, mock_sleep):
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = [
+        {"classType": "X1.0"},
+    ]
+    mock_response.raise_for_status.return_value = None
+
+    mock_get.side_effect = [
+        requests.RequestException("Temporary failure"),
+        requests.RequestException("Temporary failure"),
+        mock_response,
+    ]
+
+    result = fetch_solar_flares(
+        "2026-08-01",
+        "2026-08-11",
+    )
+
+    assert result == [
+        {"classType": "X1.0"},
+    ]
+
+    assert mock_get.call_count == 3
+    assert mock_sleep.call_count == 2
+
+
+# Test CME API retries after transient failures
+@patch("app.services.nasa_client.time.sleep")
+@patch("app.services.nasa_client.requests.get")
+def test_fetch_cmes_retries(mock_get, mock_sleep):
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = [
+        {
+            "activityID": "2026-08-01-CME-001",
+            "cmeAnalyses": [],
+        }
+    ]
+    mock_response.raise_for_status.return_value = None
+
+    mock_get.side_effect = [
+        requests.RequestException("Temporary failure"),
+        requests.RequestException("Temporary failure"),
+        mock_response,
+    ]
+
+    result = fetch_cmes(
+        "2026-08-01",
+        "2026-08-11",
+    )
+
+    assert result == [
+        {
+            "activityID": "2026-08-01-CME-001",
+            "cmeAnalyses": [],
+        }
+    ]
+
+    assert mock_get.call_count == 3
+    assert mock_sleep.call_count == 2
