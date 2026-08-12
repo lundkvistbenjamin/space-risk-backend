@@ -7,7 +7,6 @@ from app.services.risk_engine import (
 
 
 # Test radio blackout risk
-
 def test_calculate_radio_risk_zero_flux():
 
     assert calculate_radio_risk(0.0) == 0.0
@@ -34,7 +33,6 @@ def test_calculate_radio_risk_capped_at_100():
 
 
 # Test GPS disruption risk
-
 def test_calculate_gps_risk_without_earth_directed_cme():
 
     cme_features = {
@@ -84,7 +82,6 @@ def test_calculate_gps_risk_capped_at_100():
 
 
 # Test power grid risk
-
 def test_calculate_power_grid_risk_without_earth_directed_cme():
 
     cme_features = {
@@ -119,7 +116,6 @@ def test_calculate_power_grid_risk_partial():
 
 
 # Test final assessment
-
 def test_generate_space_weather_assessment_low_risk():
 
     cme_features = {
