@@ -153,8 +153,13 @@ def save_to_supabase(payload: dict):
         SUPABASE_KEY,
     )
 
-    # Flatten the nested payload into the database schema
+    # Flatten the nested pipeline payload into the database schema.
+    # assessment_date uses window_end so there can only be one
+    # assessment for each calendar day.
     row = {
+
+        "assessment_date":
+            payload["metadata"]["window_end"],
 
         "generated_at":
             payload["metadata"]["generated_at"],
@@ -187,15 +192,22 @@ def save_to_supabase(payload: dict):
             payload["risk_assessment"]["threat_level"],
     }
 
+    # Upsert prevents duplicate assessments for the same calendar day.
+    # If assessment_date already exists, the existing record is updated.
+    # Otherwise, a new record is inserted.
     response = (
         supabase
         .table("space_weather_assessments")
-        .insert(row)
+        .upsert(
+            row,
+            on_conflict="assessment_date",
+        )
         .execute()
     )
 
     logger.info(
-        "Successfully pushed record to Supabase!"
+        "Successfully upserted assessment for %s!",
+        row["assessment_date"],
     )
 
     return response
