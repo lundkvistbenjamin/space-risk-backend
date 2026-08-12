@@ -5,7 +5,6 @@ from app.services.event_transformer import (
 
 
 # Test valid solar flare classes
-
 def test_parse_flare_class_x1():
 
     assert parse_flare_class("X1.0") == 1e-4
@@ -22,7 +21,6 @@ def test_parse_flare_class_c2():
 
 
 # Test invalid or missing solar flare classes
-
 def test_parse_flare_class_none():
 
     assert parse_flare_class(None) == 0.0
@@ -39,7 +37,6 @@ def test_parse_flare_class_invalid_string():
 
 
 # Test CME feature extraction
-
 def test_extract_cme_features_empty_event():
 
     result = extract_cme_features({})

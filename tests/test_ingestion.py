@@ -5,7 +5,6 @@ from app.pipeline.ingestion import (
 
 
 # Test peak flare selection
-
 def test_get_peak_flare_empty_list():
 
     result = get_peak_flare([])
@@ -40,7 +39,6 @@ def test_get_peak_flare_ignores_weaker_flares():
 
 
 # Test primary CME selection
-
 def test_get_primary_cme_empty_list():
 
     result = get_primary_cme([])
