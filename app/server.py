@@ -66,6 +66,9 @@ def get_latest_assessment():
 )
 def get_assessment_trends(limit: int = 7):
 
+    # Prevent excessively large database queries
+    limit = min(limit, 30)
+
     supabase = get_supabase_client()
 
     response = (
