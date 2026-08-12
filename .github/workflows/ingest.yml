@@ -2,29 +2,35 @@ name: Space Weather Data Ingestion Pipeline
 
 on:
   schedule:
-    # Runs every day at 01:00 UTC
-    - cron: '0 1 * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+    # Run the ingestion pipeline every day at 01:00 UTC.
+    - cron: "0 1 * * *"
+
+  # Allow the pipeline to be triggered manually from GitHub.
+  workflow_dispatch:
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
 
     steps:
+      # Check out the current repository contents.
       - name: Check out repository
         uses: actions/checkout@v4
 
+      # Use a stable Python version for the ingestion environment.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
+      # Install the dependencies required by the application.
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Ingestion Script
+      # Run the ingestion pipeline and save the generated assessment.
+      - name: Run ingestion pipeline
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
