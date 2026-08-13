@@ -59,7 +59,7 @@ def get_latest_assessment():
     return response.data[0]
 
 
-# Return recent assessment history
+# Return recent daily assessment history
 @app.get(
     "/api/v1/trends",
     tags=["Assessments"],
@@ -75,9 +75,10 @@ def get_assessment_trends(limit: int = 7):
         supabase
         .table("space_weather_assessments")
         .select(
-            "generated_at, scores, threat_level, flare_count, cme_count"
+            "assessment_date, generated_at, scores, "
+            "threat_level, flare_count, cme_count"
         )
-        .order("generated_at", desc=True)
+        .order("assessment_date", desc=True)
         .limit(limit)
         .execute()
     )
