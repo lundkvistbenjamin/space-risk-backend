@@ -150,14 +150,12 @@ def fetch_cmes(start_date: str, end_date: str) -> list:
     return []
 
 
-# Generate a rolling UTC date range ending today
-def get_date_range(days_back: int = 30) -> tuple[str, str]:
+# Generate the completed calendar day to assess
+def get_assessment_date(days_back: int = 1) -> str:
 
-    end_date = datetime.now(timezone.utc)
-    start_date = end_date - timedelta(days=days_back)
-
-    # Format dates as YYYY-MM-DD
-    return (
-        start_date.strftime("%Y-%m-%d"),
-        end_date.strftime("%Y-%m-%d"),
+    assessment_date = (
+        datetime.now(timezone.utc).date()
+        - timedelta(days=days_back)
     )
+
+    return assessment_date.strftime("%Y-%m-%d")

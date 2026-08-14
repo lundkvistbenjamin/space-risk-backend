@@ -7,7 +7,7 @@ from app.services.risk_engine import generate_space_weather_assessment
 from app.services.nasa_client import (
     fetch_cmes,
     fetch_solar_flares,
-    get_date_range,
+    get_assessment_date,
 )
 from app.services.event_transformer import (
     extract_cme_features,
@@ -74,7 +74,10 @@ def get_primary_cme(raw_cmes: list) -> dict:
 # Run the complete ingestion pipeline
 def run_pipeline(days_back: int = 30) -> dict:
 
-    start_date, end_date = get_date_range(days_back)
+    assessment_date = get_assessment_date(days_back)
+
+    start_date = assessment_date
+    end_date = assessment_date
 
     logger.info(
         "Fetching space weather data (%s to %s)...",

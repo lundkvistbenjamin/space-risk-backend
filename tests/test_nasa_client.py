@@ -1,11 +1,12 @@
 from unittest.mock import Mock, patch
-
+from datetime import date
+from unittest.mock import Mock, patch
 import requests
 
 from app.services.nasa_client import (
     fetch_cmes,
     fetch_solar_flares,
-    get_date_range,
+    get_assessment_date,
 )
 
 
@@ -99,23 +100,17 @@ def test_fetch_cmes_request_failure(mock_get):
     assert result == []
 
 
-# Test date range generation
+# Test assessment date generation
 @patch("app.services.nasa_client.datetime")
-def test_get_date_range(mock_datetime):
+def test_get_assessment_date(mock_datetime):
 
-    mock_end_date = Mock()
-    mock_start_date = Mock()
+    mock_datetime.now.return_value.date.return_value = date(
+        2026, 8, 11
+    )
 
-    mock_end_date.strftime.return_value = "2026-08-11"
-    mock_start_date.strftime.return_value = "2026-07-12"
+    result = get_assessment_date(days_back=30)
 
-    mock_datetime.now.return_value = mock_end_date
-    mock_end_date.__sub__ = Mock(return_value=mock_start_date)
-
-    start_date, end_date = get_date_range(days_back=30)
-
-    assert start_date == "2026-07-12"
-    assert end_date == "2026-08-11"
+    assert result == "2026-07-12"
 
 
 # Test Solar Flare API retries after transient failures
