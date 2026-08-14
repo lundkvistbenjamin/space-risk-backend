@@ -116,13 +116,12 @@ def test_get_primary_cme_selects_fastest_same_priority():
 
 
 # Test saving assessments to Supabase
-def test_save_to_supabase_uses_window_end_as_assessment_date():
+def test_save_to_supabase_uses_assessment_date():
 
     payload = {
         "metadata": {
             "generated_at": "2026-08-12T12:00:00+00:00",
-            "window_start": "2026-07-13",
-            "window_end": "2026-08-12",
+            "assessment_date": "2026-08-12",
             "events_analyzed": {
                 "flare_count": 13,
                 "cme_count": 115,
@@ -168,7 +167,8 @@ def test_save_to_supabase_uses_window_end_as_assessment_date():
     row = mock_query.upsert.call_args.args[0]
 
     assert row["assessment_date"] == "2026-08-12"
-    assert row["window_end"] == "2026-08-12"
+    assert "window_start" not in row
+    assert "window_end" not in row
 
 
 def test_save_to_supabase_upserts_on_assessment_date():
@@ -176,8 +176,7 @@ def test_save_to_supabase_upserts_on_assessment_date():
     payload = {
         "metadata": {
             "generated_at": "2026-08-12T12:00:00+00:00",
-            "window_start": "2026-07-13",
-            "window_end": "2026-08-12",
+            "assessment_date": "2026-08-12",
             "events_analyzed": {
                 "flare_count": 13,
                 "cme_count": 115,

@@ -72,22 +72,25 @@ def get_primary_cme(raw_cmes: list) -> dict:
 
 
 # Run the complete ingestion pipeline
-def run_pipeline(days_back: int = 30) -> dict:
+def run_pipeline(days_back: int = 1) -> dict:
 
     assessment_date = get_assessment_date(days_back)
 
-    start_date = assessment_date
-    end_date = assessment_date
-
     logger.info(
-        "Fetching space weather data (%s to %s)...",
-        start_date,
-        end_date,
+        "Fetching space weather data for %s...",
+        assessment_date,
     )
 
-    # Download raw NASA DONKI data
-    raw_flares = fetch_solar_flares(start_date, end_date)
-    raw_cmes = fetch_cmes(start_date, end_date)
+    # Download raw NASA DONKI data for the assessment date
+    raw_flares = fetch_solar_flares(
+        assessment_date,
+        assessment_date,
+    )
+
+    raw_cmes = fetch_cmes(
+        assessment_date,
+        assessment_date,
+    )
 
     # Determine the strongest flare
     peak_flux, peak_flare_class = get_peak_flare(raw_flares)
@@ -103,26 +106,20 @@ def run_pipeline(days_back: int = 30) -> dict:
 
     # Construct the payload returned by the pipeline
     payload = {
-
         "metadata": {
-
             "generated_at": datetime.now(
                 timezone.utc
             ).isoformat(),
 
-            "window_start": start_date,
-            "window_end": end_date,
+            "assessment_date": assessment_date,
 
             "events_analyzed": {
-
                 "flare_count": len(raw_flares),
                 "cme_count": len(raw_cmes),
-
             },
         },
 
         "observed_extremes": {
-
             "peak_solar_flare_class": (
                 peak_flare_class or "None"
             ),
@@ -130,7 +127,6 @@ def run_pipeline(days_back: int = 30) -> dict:
             "peak_xray_flux_wm2": peak_flux,
 
             "primary_cme_features": primary_cme,
-
         },
 
         "risk_assessment": assessment,
@@ -157,21 +153,14 @@ def save_to_supabase(payload: dict):
     )
 
     # Flatten the nested pipeline payload into the database schema.
-    # assessment_date uses window_end so there can only be one
-    # assessment for each calendar day.
+    # assessment_date identifies the calendar day being assessed.
     row = {
 
         "assessment_date":
-            payload["metadata"]["window_end"],
+            payload["metadata"]["assessment_date"],
 
         "generated_at":
             payload["metadata"]["generated_at"],
-
-        "window_start":
-            payload["metadata"]["window_start"],
-
-        "window_end":
-            payload["metadata"]["window_end"],
 
         "flare_count":
             payload["metadata"]["events_analyzed"]["flare_count"],
