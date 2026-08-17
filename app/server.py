@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.supabase import get_supabase_client
 
@@ -64,10 +64,9 @@ def get_latest_assessment():
     "/api/v1/trends",
     tags=["Assessments"],
 )
-def get_assessment_trends(limit: int = 7):
-
-    # Prevent excessively large database queries
-    limit = min(limit, 30)
+def get_assessment_trends(
+    limit: int = Query(7, ge=1, le=30),
+):
 
     supabase = get_supabase_client()
 
@@ -83,4 +82,7 @@ def get_assessment_trends(limit: int = 7):
         .execute()
     )
 
-    return response.data
+    return {
+        "count": len(response.data),
+        "data": response.data,
+    }

@@ -126,7 +126,10 @@ def test_get_assessment_trends_returns_records():
         response = client.get("/api/v1/trends")
 
     assert response.status_code == 200
-    assert response.json() == trends
+    assert response.json() == {
+        "count": 2,
+        "data": trends,
+    }
 
     # Verify that the default limit of 7 was passed to Supabase
     mock_query.limit.assert_called_once_with(7)
@@ -156,31 +159,33 @@ def test_get_assessment_trends_accepts_custom_limit():
         response = client.get("/api/v1/trends?limit=10")
 
     assert response.status_code == 200
+    assert response.json() == {
+        "count": 0,
+        "data": [],
+    }
+
     mock_query.limit.assert_called_once_with(10)
 
 
-# Test that the trends endpoint caps excessively large limits
-def test_get_assessment_trends_caps_limit_at_30():
+# Test that the trends endpoint rejects limits above 30
+def test_get_assessment_trends_rejects_limit_above_30():
 
-    # Simulate a valid empty response from Supabase
-    mock_response = MagicMock()
-    mock_response.data = []
+    response = client.get("/api/v1/trends?limit=1000")
 
-    mock_query = MagicMock()
-    mock_query.select.return_value = mock_query
-    mock_query.order.return_value = mock_query
-    mock_query.limit.return_value = mock_query
-    mock_query.execute.return_value = mock_response
+    assert response.status_code == 422
 
-    mock_supabase = MagicMock()
-    mock_supabase.table.return_value = mock_query
 
-    # Replace the real Supabase client with the mock
-    with patch(
-        "app.server.get_supabase_client",
-        return_value=mock_supabase,
-    ):
-        response = client.get("/api/v1/trends?limit=1000")
+# Test that the trends endpoint rejects a zero limit
+def test_get_assessment_trends_rejects_zero_limit():
 
-    assert response.status_code == 200
-    mock_query.limit.assert_called_once_with(30)
+    response = client.get("/api/v1/trends?limit=0")
+
+    assert response.status_code == 422
+
+
+# Test that the trends endpoint rejects a negative limit
+def test_get_assessment_trends_rejects_negative_limit():
+
+    response = client.get("/api/v1/trends?limit=-1")
+
+    assert response.status_code == 422
