@@ -5,22 +5,25 @@ import math
 # for demonstration and benchmarking. They approximate complex space physics and
 # DO NOT replace official space weather forecasts from NOAA SWPC or NASA CCMC.
 
+
 # Calculate radio blackout risk from peak X-ray flux
 def calculate_radio_risk(peak_flux: float) -> float:
 
     if peak_flux <= 0:
         return 0.0
 
-    # C-class baseline
+    # C1 flare = 0 risk baseline
     min_log = -6.0
 
-    # X10 flare
+    # X10 flare = 100 risk ceiling
     max_log = -3.0
 
     current_log = math.log10(peak_flux)
 
-    # Normalize to a 0-100 scale
-    normalized = (current_log - min_log) / (max_log - min_log)
+    normalized = (
+        (current_log - min_log)
+        / (max_log - min_log)
+    )
 
     risk = normalized * 100.0
 
@@ -36,16 +39,19 @@ def calculate_gps_risk(
     cme_features: dict,
 ) -> float:
 
-    # Solar flare contributes up to 40 points
-    flare_component = calculate_radio_risk(peak_flux) * 0.4
+    # Solar flare contribution
+    flare_component = (
+        calculate_radio_risk(peak_flux) * 0.4
+    )
 
-    speed = cme_features.get("speed", 0.0)
-    is_earth = cme_features.get("is_earth_directed", False)
-
-    # Earth-directed CME contributes up to 60 points
+    # CME contribution only applies when the CME is
+    # considered Earth-directed.
     cme_component = 0.0
 
-    if is_earth:
+    if cme_features.get("is_earth_directed", False):
+
+        speed = cme_features.get("speed", 0.0)
+
         cme_component = min(
             60.0,
             (speed / 2000.0) * 60.0,
@@ -54,7 +60,10 @@ def calculate_gps_risk(
     return round(
         max(
             0.0,
-            min(100.0, flare_component + cme_component),
+            min(
+                100.0,
+                flare_component + cme_component,
+            ),
         ),
         2,
     )
@@ -65,6 +74,8 @@ def calculate_power_grid_risk(
     cme_features: dict,
 ) -> float:
 
+    # Non-Earth-directed CMEs do not contribute
+    # to the geomagnetic grid risk score.
     if not cme_features.get("is_earth_directed", False):
         return 0.0
 
@@ -84,7 +95,10 @@ def calculate_power_grid_risk(
     return round(
         max(
             0.0,
-            min(100.0, speed_factor + angle_factor),
+            min(
+                100.0,
+                speed_factor + angle_factor,
+            ),
         ),
         2,
     )
@@ -96,7 +110,9 @@ def generate_space_weather_assessment(
     cme_features: dict,
 ) -> dict:
 
-    radio_score = calculate_radio_risk(peak_flux)
+    radio_score = calculate_radio_risk(
+        peak_flux
+    )
 
     gps_score = calculate_gps_risk(
         peak_flux,

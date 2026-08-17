@@ -44,19 +44,51 @@ def extract_cme_features(cme_event: dict) -> dict:
             "is_earth_directed": False,
         }
 
-    # Grab the primary (usually first/most accurate) analysis entry
-    primary = analyses[0]
+    # Prefer the analysis marked as most accurate.
+    primary = next(
+        (
+            analysis
+            for analysis in analyses
+            if analysis.get("isMostAccurate", False)
+        ),
+        analyses[0],
+    )
 
     speed = float(primary.get("speed") or 0.0)
     half_angle = float(primary.get("halfAngle") or 0.0)
 
-    # Half-angle > 45° or a Full Halo CME generally indicates an Earth-directed event
+    latitude = primary.get("latitude")
+    longitude = primary.get("longitude")
+
+    # Full Halo CMEs are treated as potentially Earth-directed.
+    is_full_halo = primary.get("type") == "Full Halo"
+
+    # If latitude/longitude are available, estimate the angular
+    # separation between the CME propagation direction and the
+    # Sun-Earth line.
+    is_within_cone = False
+
+    if latitude is not None and longitude is not None:
+
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+
+            angular_distance = (
+                latitude ** 2
+                + longitude ** 2
+            ) ** 0.5
+
+            is_within_cone = (
+                angular_distance <= half_angle
+            )
+
+        except (TypeError, ValueError):
+            is_within_cone = False
+
     is_earth_directed = (
-        primary.get("isMostAccurate", False)
-        and (
-            half_angle >= 45.0
-            or primary.get("type") == "Full Halo"
-        )
+        is_full_halo
+        or is_within_cone
     )
 
     return {

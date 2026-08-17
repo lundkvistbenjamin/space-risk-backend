@@ -55,6 +55,8 @@ def test_extract_cme_features_earth_directed():
             {
                 "speed": 1500,
                 "halfAngle": 60,
+                "latitude": 10,
+                "longitude": 20,
                 "isMostAccurate": True,
                 "type": "CME",
             }
@@ -104,3 +106,23 @@ def test_extract_cme_features_full_halo():
     result = extract_cme_features(cme)
 
     assert result["is_earth_directed"] is True
+
+
+def test_extract_cme_features_requires_accurate_analysis():
+
+    cme = {
+        "cmeAnalyses": [
+            {
+                "speed": 2000,
+                "halfAngle": 90,
+                "isMostAccurate": False,
+                "type": "CME",
+            }
+        ]
+    }
+
+    result = extract_cme_features(cme)
+
+    assert result["speed"] == 2000.0
+    assert result["half_angle"] == 90.0
+    assert result["is_earth_directed"] is False

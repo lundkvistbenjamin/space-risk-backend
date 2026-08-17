@@ -46,6 +46,7 @@ def test_calculate_gps_risk_without_earth_directed_cme():
         cme_features,
     )
 
+    # Flare risk still contributes even when the CME is not Earth-directed.
     assert result == 26.67
 
 
@@ -129,8 +130,31 @@ def test_generate_space_weather_assessment_low_risk():
         cme_features,
     )
 
+    assert result["scores"]["radio_blackout"] == 0.0
+    assert result["scores"]["gps_disruption"] == 0.0
+    assert result["scores"]["power_grid"] == 0.0
     assert result["scores"]["overall_max"] == 0.0
     assert result["threat_level"] == "LOW"
+
+
+def test_generate_space_weather_assessment_flare_risk_without_earth_directed_cme():
+
+    cme_features = {
+        "speed": 2000.0,
+        "half_angle": 90.0,
+        "is_earth_directed": False,
+    }
+
+    result = generate_space_weather_assessment(
+        1e-4,
+        cme_features,
+    )
+
+    assert result["scores"]["radio_blackout"] == 66.67
+    assert result["scores"]["gps_disruption"] == 26.67
+    assert result["scores"]["power_grid"] == 0.0
+    assert result["scores"]["overall_max"] == 66.67
+    assert result["threat_level"] == "HIGH"
 
 
 def test_generate_space_weather_assessment_critical():

@@ -61,6 +61,8 @@ def test_get_primary_cme_prefers_earth_directed():
                 {
                     "speed": 2000,
                     "halfAngle": 30,
+                    "latitude": 60,
+                    "longitude": 60,
                     "isMostAccurate": True,
                     "type": "CME",
                 }
@@ -71,6 +73,8 @@ def test_get_primary_cme_prefers_earth_directed():
                 {
                     "speed": 1000,
                     "halfAngle": 60,
+                    "latitude": 10,
+                    "longitude": 20,
                     "isMostAccurate": True,
                     "type": "CME",
                 }
