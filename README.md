@@ -6,8 +6,6 @@
 
 Space Weather Risk Backend is a FastAPI service and automated data ingestion pipeline that collects solar flare and coronal mass ejection (CME) data from NASA DONKI, transforms the observations into risk-related features, and calculates infrastructure risk assessments for radio communications, GPS, and power grids.
 
-The project is designed as a portfolio backend demonstrating API development, external API integration, data transformation, automated ingestion, risk scoring, testing, and cloud deployment.
-
 ## Core Features
 
 ### NASA DONKI Data Ingestion
